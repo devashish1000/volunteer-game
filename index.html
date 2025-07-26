@@ -1,1 +1,167 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pac-Man Game</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script>
+let pacmanX = 14, pacmanY = 23;
+let direction = 'RIGHT';
+let score = 0;
+let lives = 3;
+let cellSize = 20;
+let board = [
+  "############################",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#o####.#####.##.#####.####o#",
+  "#.####.#####.##.#####.####.#",
+  "#..........................#",
+  "#.####.##.########.##.####.#",
+  "#.####.##.########.##.####.#",
+  "#......##....##....##......#",
+  "######.##### ## #####.######",
+  "######.##### ## #####.######",
+  "######.##          ##.######",
+  "######.## ###--### ##.######",
+  "######.## #      # ##.######",
+  "       ## #      # ##       ",
+  "######.## #      # ##.######",
+  "######.## ######## ##.######",
+  "######.##          ##.######",
+  "######.## ######## ##.######",
+  "######.## ######## ##.######",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#.####.#####.##.#####.####.#",
+  "#o..##................##..o#",
+  "###.##.##.########.##.##.###",
+  "###.##.##.########.##.##.###",
+  "#......##....##....##......#",
+  "#.##########.##.##########.#",
+  "#.##########.##.##########.#",
+  "#..........................#",
+  "############################"
+];
+let ghosts = [
+  {x: 13, y: 11, dir: 'RIGHT'},
+  {x: 14, y: 11, dir: 'LEFT'},
+  {x: 15, y: 11, dir: 'UP'},
+  {x: 16, y: 11, dir: 'DOWN'}
+];
+
+function setup() {
+  createCanvas(560, 620);
+  textSize(18);
+  textFont('Arial');
+}
+
+function draw() {
+  background(0);
+  drawBoard();
+  movePacman();
+  moveGhosts();
+  if (checkCollision()) {
+    pacmanX = 14; pacmanY = 23;
+    lives--;
+    if (lives === 0) noLoop();
+  }
+  drawPacman();
+  drawGhosts();
+  drawText();
+}
+
+function drawBoard() {
+  for (let y = 0; y < board.length; y++) {
+    for (let x = 0; x < board[y].length; x++) {
+      if (board[y][x] === '#') {
+        fill(0, 0, 255);
+        rect(x * cellSize, y * cellSize, cellSize, cellSize);
+      } else if (board[y][x] === '.') {
+        fill(255);
+        ellipse(x * cellSize + cellSize / 2, y * cellSize + cellSize / 2, 6);
+      } else if (board[y][x] === 'o') {
+        fill(255);
+        ellipse(x * cellSize + cellSize / 2, y * cellSize + cellSize / 2, 14);
+      }
+    }
+  }
+}
+
+function drawPacman() {
+  fill(255, 255, 0);
+  ellipse(pacmanX * cellSize + cellSize / 2, pacmanY * cellSize + cellSize / 2, cellSize);
+}
+
+function drawGhosts() {
+  let colors = [[255, 255, 0], [255, 0, 0], [0, 255, 255], [0, 255, 0]];
+  for (let i = 0; i < ghosts.length; i++) {
+    fill(colors[i][0], colors[i][1], colors[i][2]);
+    rect(ghosts[i].x * cellSize, ghosts[i].y * cellSize, cellSize, cellSize);
+  }
+}
+
+function movePacman() {
+  let newX = pacmanX, newY = pacmanY;
+  if (direction === 'LEFT') newX--;
+  else if (direction === 'RIGHT') newX++;
+  else if (direction === 'UP') newY--;
+  else if (direction === 'DOWN') newY++;
+  if (newX >= 0 && newX < board[0].length && newY >= 0 && newY < board.length && board[newY][newX] !== '#') {
+    pacmanX = newX;
+    pacmanY = newY;
+    if (board[pacmanY][pacmanX] === '.' || board[pacmanY][pacmanX] === 'o') {
+      score += board[pacmanY][pacmanX] === '.' ? 10 : 50;
+      board[pacmanY] = board[pacmanY].substring(0, pacmanX) + ' ' + board[pacmanY].substring(pacmanX + 1);
+    }
+  }
+}
+
+function moveGhosts() {
+  for (let ghost of ghosts) {
+    let dirs = ['LEFT', 'RIGHT', 'UP', 'DOWN'];
+    dirs.sort(() => Math.random() - 0.5);
+    for (let dir of dirs) {
+      let newX = ghost.x, newY = ghost.y;
+      if (dir === 'LEFT') newX--;
+      else if (dir === 'RIGHT') newX++;
+      else if (dir === 'UP') newY--;
+      else if (dir === 'DOWN') newY++;
+      if (newX >= 0 && newX < board[0].length && newY >= 0 && newY < board.length && board[newY][newX] !== '#') {
+        ghost.x = newX;
+        ghost.y = newY;
+        ghost.dir = dir;
+        break;
+      }
+    }
+  }
+}
+
+function checkCollision() {
+  for (let ghost of ghosts) {
+    if (ghost.x === pacmanX && ghost.y === pacmanY) return true;
+  }
+  return false;
+}
+
+function drawText() {
+  fill(255);
+  text(`Score: ${score}`, 10, 590);
+  text(`Lives: ${lives}`, 460, 590);
+}
+
+function keyPressed() {
+  if (keyCode === LEFT_ARROW) direction = 'LEFT';
+  else if (keyCode === RIGHT_ARROW) direction = 'RIGHT';
+  else if (keyCode === UP_ARROW) direction = 'UP';
+  else if (keyCode === DOWN_ARROW) direction = 'DOWN';
+}
+</script>
+</body>
+</html>
